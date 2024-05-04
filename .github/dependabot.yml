@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "devskar"
+    target-branch: "developer"
+    labels:
+      - "dependencies"
+      - "yarn"
+    open-pull-requests-limit: 15
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "devskar"
+    target-branch: "developer"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 15
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "devskar"
+    target-branch: "developer"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 15

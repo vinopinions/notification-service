@@ -1,0 +1,5 @@
+# Define code owners for the "developer" branch
+/developer/*      @vinopinions/api-codeowner
+
+# Define code owners for the "master" branch
+/master/*          @vinopinions/api-codeowner
