@@ -1,0 +1,97 @@
+name: End-to-End test
+
+on:
+  pull_request:
+    branches: ['developer', 'master']
+  workflow_call:
+  schedule:
+    - cron: '0 8 * * *'
+
+permissions:
+  contents: read # for checkout
+
+env:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: test
+  S3_ACCESS_KEY: minio
+  S3_SECRET_KEY: ksRQzrs%LdNb8A
+  S3_BUCKET: test
+  S3_ENDPOINT: http://minio:9000
+  S3_REGION: eu-north-1
+  FIREBASE_AUTH_EMULATOR_HOST: firebase-emulator:9099
+  RABBITMQ_USER: admin
+  RABBITMQ_PASSWORD: krLD8^*U3uu!J5
+
+jobs:
+  test:
+    name: e2e Test
+    runs-on: ubuntu-latest
+    container: node:${{ vars.NODE_VERSION }}
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+      minio:
+        image: bitnami/minio
+        env:
+          MINIO_ROOT_USER: ${{ env.S3_ACCESS_KEY }}
+          MINIO_ROOT_PASSWORD: ${{ env.S3_SECRET_KEY }}
+          MINIO_DEFAULT_BUCKETS: ${{ env.S3_BUCKET }}
+        options: >-
+          --health-cmd "curl -f http://minio:9000/minio/health/ready || exit 1"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 3
+      firebase-emulator:
+        image: ghcr.io/vinopinions/api-firebase-emulator:latest
+      rabbitmq:
+        image: rabbitmq:3.13.1
+        env:
+          RABBITMQ_DEFAULT_USER: ${{ env.RABBITMQ_USER }}
+          RABBITMQ_DEFAULT_PASS: ${{ env.RABBITMQ_PASSWORD }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup yarn
+        uses: ./.github/actions/setup-yarn
+        with:
+          node-version: ${{ vars.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: yarn --immutable
+
+      - name: Run Tests
+        run: yarn test:e2e --ci --runInBand
+        env:
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_HOST: ${{ env.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          AUTH_SERVICE_DOMAIN: ${{ vars.AUTH_SERVICE_DOMAIN }}
+          JWT_PRIVATE_KEY: ${{ vars.JWT_TEST_PRIVATE_KEY }}
+          JWT_PUBLIC_KEY: ${{ vars.JWT_TEST_PUBLIC_KEY }}
+          S3_ENDPOINT: ${{ env.S3_ENDPOINT }}
+          S3_ACCESS_KEY: ${{ env.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ env.S3_SECRET_KEY }}
+          S3_BUCKET: ${{ env.S3_BUCKET }}
+          S3_REGION: ${{ env.S3_REGION }}
+          FIREBASE_AUTH_EMULATOR_HOST: ${{ env.FIREBASE_AUTH_EMULATOR_HOST }}
+          GCLOUD_PROJECT: vinopinions-test # has to be the same as in .firebaserc
+          RABBITMQ_URL: amqp://${{ env.RABBITMQ_USER }}:${{ env.RABBITMQ_PASSWORD }}@rabbitmq
