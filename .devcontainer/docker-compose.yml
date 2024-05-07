@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   app:
-    container_name: vinopinions-notification-service_devcontainer-app
+    container_name: notification-service_devcontainer-app
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
@@ -13,28 +13,32 @@ services:
     user: dev
 
   db:
-    container_name: vinopinions-notification-service_devcontainer-db
-    image: mongo:7
-    hostname: ${MONGO_HOSTNAME}
+    container_name: notification-service_devcontainer-db
+    image: postgres:16
+    hostname: ${POSTGRES_HOSTNAME}
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
     ports:
-      - ${MONGO_PORT}:27017
+      - ${POSTGRES_PORT}:5432
     volumes:
-      - mongo-data:/data/db
+      - pg-data:/var/lib/postgresql/data
 
   redis:
-    container_name: vinopinions-notification-service_devcontainer-redis
+    container_name: notification-service_devcontainer-redis
     hostname: ${REDIS_HOSTNAME}
     image: redis/redis-stack:7.2.0-v10
     ports:
       - ${REDIS_UI_PORT}:8001
       - ${REDIS_PORT}:6379
+    environment:
+      REDIS_ARGS: SAVE 30 1
     volumes:
       - redis-data:/data
 
 volumes:
-  mongo-data:
+  pg-data:
   redis-data:
