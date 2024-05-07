@@ -33,7 +33,7 @@ export class TokenService {
       where: { userId },
     });
 
-    if (tokenStore.tokens.includes(token)) return false;
+    if (!tokenStore.tokens.includes(token)) return false;
 
     tokenStore.tokens = tokenStore.tokens.filter((e) => e !== token);
     await this.tokenStoreRepository.save(tokenStore);
