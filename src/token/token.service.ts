@@ -10,15 +10,23 @@ export class TokenService {
     private tokenStoreRepository: Repository<TokenStore>,
   ) {}
 
-  async getTokens(userId: string): Promise<string[]> {
+  async get(userId: string): Promise<string[]> {
     return (await this.tokenStoreRepository.findOne({ where: { userId } }))
       .tokens;
   }
 
-  async addToken(userId: string, token: string): Promise<boolean> {
-    const tokenStore: TokenStore = await this.tokenStoreRepository.findOne({
-      where: { userId },
-    });
+  async register(userId: string, token: string): Promise<boolean> {
+    let tokenStore: TokenStore | null = await this.tokenStoreRepository.findOne(
+      {
+        where: { userId },
+      },
+    );
+
+    if (tokenStore === null)
+      tokenStore = this.tokenStoreRepository.create({
+        userId,
+        tokens: [],
+      });
 
     if (tokenStore.tokens.includes(token)) return false;
 
@@ -28,12 +36,13 @@ export class TokenService {
     return true;
   }
 
-  async revokeToken(userId: string, token: string): Promise<boolean> {
-    const tokenStore: TokenStore = await this.tokenStoreRepository.findOne({
-      where: { userId },
-    });
+  async revoke(userId: string, token: string): Promise<boolean> {
+    const tokenStore: TokenStore | null =
+      await this.tokenStoreRepository.findOne({
+        where: { userId },
+      });
 
-    if (!tokenStore.tokens.includes(token)) return false;
+    if (tokenStore === null || !tokenStore.tokens.includes(token)) return false;
 
     tokenStore.tokens = tokenStore.tokens.filter((e) => e !== token);
     await this.tokenStoreRepository.save(tokenStore);
