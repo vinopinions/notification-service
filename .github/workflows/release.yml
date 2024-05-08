@@ -67,7 +67,7 @@ jobs:
 
       - name: Check version
         id: check_version
-        run: echo "RELEASE_VERSION=$(npx semantic-release --dry-run | grep 'The next release version is' | awk '{print $NF}')" >> $GITHUB_OUTPUT
+        run: echo "RELEASE_VERSION=$(npx semantic-release --dry-run | tee /dev/tty | grep 'The next release version is' | awk '{print $NF}')" >> $GITHUB_OUTPUT
 
       - name: Release version
         env:
