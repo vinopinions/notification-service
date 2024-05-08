@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import Expo, { ExpoPushTicket } from 'expo-server-sdk';
 import { FindOptionsWhere, Repository } from 'typeorm';
@@ -62,6 +63,15 @@ export class TicketService {
         id: ticket.id,
       },
     } as FindOptionsWhere<Ticket>);
+  }
+
+  @Cron('0 */15 * * * *', {
+    name: 'ticket-checking',
+  })
+  async checkAllTickets() {
+    const tickets: Ticket[] = await this.ticketRepository.find();
+    console.log(`Checking ${tickets.length} tickets`);
+    await this.check(tickets);
   }
 
   // https://docs.expo.dev/push-notifications/sending-notifications/#check-push-receipts-for-errors
