@@ -34,8 +34,6 @@ services:
     ports:
       - ${REDIS_UI_PORT}:8001
       - ${REDIS_PORT}:6379
-    environment:
-      REDIS_ARGS: SAVE 30 1
     volumes:
       - redis-data:/data
 
