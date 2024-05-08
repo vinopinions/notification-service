@@ -95,7 +95,6 @@ jobs:
 
     environment:
       name: ${{ contains(github.ref_name, 'master') && 'production' || 'dev' }}
-
     env:
       DOCKER_REGISTRY: ghcr.io
 
