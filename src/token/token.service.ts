@@ -1,52 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TokenStore } from './entities/token-store.entity';
+import { TokenInfo } from './entities/token-info.entity';
 
 @Injectable()
 export class TokenService {
   constructor(
-    @InjectRepository(TokenStore)
-    private tokenStoreRepository: Repository<TokenStore>,
+    @InjectRepository(TokenInfo)
+    private tokenInfoRepository: Repository<TokenInfo>,
   ) {}
 
-  async get(userId: string): Promise<string[]> {
-    return (await this.tokenStoreRepository.findOne({ where: { userId } }))
-      .tokens;
+  async getByUserId(userId: string): Promise<string[]> {
+    const tokenInfos: TokenInfo[] = await this.tokenInfoRepository.find({
+      where: { userId },
+    });
+
+    return tokenInfos.map((info) => info.token);
   }
 
-  async register(userId: string, token: string): Promise<boolean> {
-    let tokenStore: TokenStore | null = await this.tokenStoreRepository.findOne(
-      {
-        where: { userId },
-      },
-    );
+  async register(token: string, userId: string): Promise<boolean> {
+    let tokenInfo: TokenInfo | null = await this.tokenInfoRepository.findOne({
+      where: { token },
+    });
 
-    if (tokenStore === null)
-      tokenStore = this.tokenStoreRepository.create({
-        userId,
-        tokens: [],
-      });
+    if (tokenInfo !== null) {
+      return false;
+    }
 
-    if (tokenStore.tokens.includes(token)) return false;
+    tokenInfo = this.tokenInfoRepository.create({
+      token,
+      userId,
+    });
 
-    tokenStore.tokens.push(token);
-    await this.tokenStoreRepository.save(tokenStore);
+    await this.tokenInfoRepository.save(tokenInfo);
 
     return true;
   }
 
-  async revoke(userId: string, token: string): Promise<boolean> {
-    const tokenStore: TokenStore | null =
-      await this.tokenStoreRepository.findOne({
-        where: { userId },
-      });
-
-    if (tokenStore === null || !tokenStore.tokens.includes(token)) return false;
-
-    tokenStore.tokens = tokenStore.tokens.filter((e) => e !== token);
-    await this.tokenStoreRepository.save(tokenStore);
-
+  async revoke(token: string): Promise<boolean> {
+    const tokenInfo: TokenInfo | null = await this.tokenInfoRepository.findOne({
+      where: { token },
+    });
+    if (tokenInfo === null) return false;
+    await this.tokenInfoRepository.delete(tokenInfo);
     return true;
   }
 }
