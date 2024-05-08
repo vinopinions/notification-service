@@ -1,19 +1,30 @@
 import { Module, ValidationPipe } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
+import { ExpoModule } from './expo/expo.module';
+import { ExpoService } from './expo/expo.service';
+import { NotificationModule } from './notification/notification.module';
+import { TicketModule } from './ticket/ticket.module';
 import { TokenModule } from './token/token.module';
 
 @Module({
-  imports: [DatabaseModule, TokenModule],
-  controllers: [AppController],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    DatabaseModule,
+    TokenModule,
+    NotificationModule,
+    TicketModule,
+    ExpoModule,
+  ],
   providers: [
-    AppService,
     {
       provide: APP_PIPE,
       useValue: new ValidationPipe(),
     },
+    ExpoService,
   ],
 })
 export class AppModule {}
