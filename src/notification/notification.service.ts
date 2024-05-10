@@ -18,9 +18,11 @@ export class NotificationService {
 
   async sendNotificationToUser(userId: string, body: string) {
     const tokens: string[] = await this.tokenService.getByUserId(userId);
-    tokens.forEach(async (e) => {
-      await this.sendNotificationToToken(e, body);
-    });
+    await Promise.all(
+      tokens.map(async (e) => {
+        await this.sendNotificationToToken(e, body);
+      }),
+    );
   }
 
   async sendNotificationToToken(pushToken: string, body: string) {
@@ -34,11 +36,11 @@ export class NotificationService {
       sound: 'default',
       body,
     };
+    const messages: ExpoPushMessage[] = [pushMessage];
+    const tickets: ExpoPushTicket[] =
+      await this.expo.sendPushNotificationsAsync(messages);
 
-    const ticket: ExpoPushTicket = await this.expo.sendPushNotificationsAsync([
-      pushMessage,
-    ])[0];
-
-    await this.ticketService.createFromExpoTicket(ticket, pushToken);
+    console.log(tickets);
+    await this.ticketService.createFromExpoTicket(tickets[0], pushToken);
   }
 }

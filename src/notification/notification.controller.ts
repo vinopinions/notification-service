@@ -10,7 +10,7 @@ export class NotificationController {
 
   @EventPattern('friend_request_sent')
   async sendFriendRequestSentNotification(data: FriendRequestSentDto) {
-    this.notificationService.sendNotificationToUser(
+    await this.notificationService.sendNotificationToUser(
       data.receiverId,
       `🚀 ${data.senderName} has sent you a friend request!`,
     );
@@ -18,7 +18,7 @@ export class NotificationController {
 
   @EventPattern('friend_request_accepted')
   async sendFriendRequestAcceptNotification(data: FriendRequestAcceptedDto) {
-    this.notificationService.sendNotificationToUser(
+    await this.notificationService.sendNotificationToUser(
       data.accepteeId,
       `🚀 ${data.accepterName} has accepted your friend request!`,
     );

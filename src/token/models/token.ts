@@ -1,7 +1,9 @@
-import { IsString } from 'class-validator';
+import { Matches } from 'class-validator';
+
+const EXPONENT_PUSH_TOKEN_REGEX = /^ExponentPushToken\[.+\]$/;
 
 class Token {
-  @IsString()
+  @Matches(EXPONENT_PUSH_TOKEN_REGEX)
   token: string;
 }
 

@@ -24,6 +24,7 @@ export class TicketService {
     const tickets: Ticket[] = [];
 
     for (const expoTicket of expoTickets) {
+      console.log(expoTicket);
       if (expoTicket.status === 'ok')
         tickets.push(this.ticketRepository.create({ id: expoTicket.id }));
     }
@@ -34,6 +35,7 @@ export class TicketService {
   }
 
   async createFromExpoTicket(expoTicket: ExpoPushTicket, token: string) {
+    console.log({ expoTicket });
     if (expoTicket.status !== 'ok') return;
 
     const ticket: Ticket = this.ticketRepository.create({
